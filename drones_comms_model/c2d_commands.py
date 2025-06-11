@@ -1,60 +1,68 @@
-from datetime import datetime, timezone
-from typing import List, Optional, Union as PyUnion, Annotated, Literal
-from uuid import UUID, uuid4
+from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .common_types import (
+    WIRE_MODEL_CONFIG,
     CommandType,
     GimbalControlMode,
-    MODEL_CONFIG_WITH_DATETIME_ENCODER,
+    UtcDatetime,
+    utc_now,
 )
 
+_ANGLE_FIELDS = ("pitch_deg", "yaw_deg")
+_RATE_FIELDS = ("pitch_deg_s", "yaw_deg_s")
+
+
 class BaseC2DCommand(BaseModel):
-    timestamp_utc: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+    """Envelope shared by every cloud-to-drone command.
+
+    Unknown keys are rejected: a misspelled field on a command must fail loudly
+    instead of being dropped before it reaches the aircraft.
+    """
+
+    model_config = ConfigDict(**WIRE_MODEL_CONFIG, extra="forbid")
+
+    timestamp_utc: UtcDatetime = Field(
+        default_factory=utc_now,
         alias="timestamp",
-        description="Timestamp of the command in UTC. Aliased to timestamp for JSON.",
+        description="When the command was issued. Must carry a UTC offset; normalised to UTC.",
     )
 
-    model_config = {
-        **MODEL_CONFIG_WITH_DATETIME_ENCODER, 
-        "populate_by_name": True,
-    }
 
 class GimbalControlPayload(BaseModel):
+    model_config = ConfigDict(**WIRE_MODEL_CONFIG, extra="forbid")
+
     mode: GimbalControlMode
-    pitch_deg: Optional[float] = None
-    yaw_deg: Optional[float] = None
-    pitch_deg_s: Optional[float] = None
-    yaw_deg_s: Optional[float] = None
-    duration_s: Optional[float] = Field(None, gt=0)
-    relative: Optional[bool] = None
+    pitch_deg: float | None = Field(None, strict=True)
+    yaw_deg: float | None = Field(None, strict=True)
+    pitch_deg_s: float | None = Field(None, strict=True)
+    yaw_deg_s: float | None = Field(None, strict=True)
+    duration_s: float | None = Field(None, gt=0, strict=True)
+    relative: bool | None = Field(None, strict=True)
 
     @model_validator(mode="after")
-    def check_conditional_fields(
-        values: "GimbalControlPayload"
-    ) -> "GimbalControlPayload":
-        mode = values.mode
-        if mode == GimbalControlMode.ANGLE or mode == GimbalControlMode.ANGLE_STEP:
-            if values.pitch_deg is None or values.yaw_deg is None:
-                raise ValueError(
-                    f"pitch_deg and yaw_deg are required for '{mode.value}' mode"
-                )
-        elif mode == GimbalControlMode.RATE:
-            if values.pitch_deg_s is None or values.yaw_deg_s is None:
-                raise ValueError(
-                    f"pitch_deg_s and yaw_deg_s are required for '{mode.value}' mode"
-                )
-        return values
+    def check_fields_match_mode(self) -> Self:
+        if self.mode is GimbalControlMode.RATE:
+            required, forbidden = _RATE_FIELDS, _ANGLE_FIELDS
+        else:
+            required, forbidden = _ANGLE_FIELDS, _RATE_FIELDS
+        if any(getattr(self, name) is None for name in required):
+            raise ValueError(f"{' and '.join(required)} are required for '{self.mode.value}' mode")
+        present = [name for name in forbidden if getattr(self, name) is not None]
+        if present:
+            raise ValueError(f"{', '.join(present)} not allowed in '{self.mode.value}' mode")
+        return self
 
 
 class GimbalControlCommand(BaseC2DCommand):
-    command_type_c2d: Literal["gimbal-controller"] = Field("gimbal-controller", alias="type")
-
+    command_type_c2d: Literal[CommandType.GIMBAL_CONTROL] = Field(
+        CommandType.GIMBAL_CONTROL, alias="type"
+    )
     payload: GimbalControlPayload
 
+
 AllCloudToDroneV1Commands = Annotated[
-    PyUnion[GimbalControlCommand,],
+    GimbalControlCommand,
     Field(discriminator="command_type_c2d"),
 ]

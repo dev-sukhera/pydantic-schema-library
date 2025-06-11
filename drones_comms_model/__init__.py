@@ -3,7 +3,8 @@ from .common_types import (
     GimbalControlMode,
     SpecificErrorCode,
     CommandAckStatus,
-    MODEL_CONFIG_WITH_DATETIME_ENCODER,
+    UtcDatetime,
+    WIRE_MODEL_CONFIG,
 )
 
 from .c2d_commands import (
@@ -27,7 +28,8 @@ __all__ = [
     "GimbalControlMode",
     "SpecificErrorCode",
     "CommandAckStatus",
-    "MODEL_CONFIG_WITH_DATETIME_ENCODER",
+    "UtcDatetime",
+    "WIRE_MODEL_CONFIG",
     "BaseC2DCommand",
     "GimbalControlCommand",
     "GimbalControlPayload",
