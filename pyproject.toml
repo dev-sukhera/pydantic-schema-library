@@ -3,7 +3,9 @@ name = "drones_comms_model"
 version = "0.2.0"
 description = "Pydantic message contracts for gimbal commands and drone acknowledgements"
 readme = "README.md"
-requires-python = ">=3.12,<3.15"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12,<3.14"
 dependencies = ["pydantic>=2.14.3,<3.0.0"]
 
 [tool.poetry]
