@@ -25,10 +25,12 @@ from pydantic import TypeAdapter
 from drones_comms_model import AllCloudToDroneV1Commands
 
 adapter = TypeAdapter(AllCloudToDroneV1Commands)
-command = adapter.validate_python({
-    "type": "gimbal-controller",
-    "payload": {"mode": "angle", "pitch_deg": 10, "yaw_deg": 20},
-})
+command = adapter.validate_python(
+    {
+        "type": "gimbal-controller",
+        "payload": {"mode": "angle", "pitch_deg": 10, "yaw_deg": 20},
+    }
+)
 wire_json = adapter.dump_json(command, by_alias=True)
 ```
 

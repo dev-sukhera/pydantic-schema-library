@@ -28,7 +28,9 @@ class BaseD2CMessage(BaseModel):
     timestamp_utc: UtcDatetime = Field(
         default_factory=utc_now,
         alias="timestamp",
-        description="When the drone generated the message. Must carry a UTC offset; normalised to UTC.",
+        description=(
+            "When the drone generated the message. Must carry a UTC offset; normalised to UTC."
+        ),
     )
     version: Literal["1.0"] = "1.0"
     message_type_d2c: str = Field(
