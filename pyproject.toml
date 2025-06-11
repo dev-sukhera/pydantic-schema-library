@@ -13,6 +13,8 @@ packages = [{ include = "drones_comms_model" }]
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.2.0"
 hypothesis = "^6.170.15"
+jsonschema = "^4.26.0"
+types-jsonschema = "^4.26.0"
 mypy = "^2.4.1"
 ruff = "^0.17.4"
 
@@ -30,7 +32,7 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PT"]
 [tool.mypy]
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["drones_comms_model", "tests"]
+files = ["drones_comms_model", "scripts", "tests"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

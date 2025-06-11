@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Drone-to-cloud message (v1)",
+  "$defs": {
+    "CommandAckFailure": {
+      "properties": {
+        "message_id": {
+          "description": "Unique ID for this D2C message instance.",
+          "format": "uuid",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "When the drone generated the message. Must carry a UTC offset; normalised to UTC.",
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "command_ack",
+          "default": "command_ack",
+          "title": "Type",
+          "type": "string"
+        },
+        "command_id": {
+          "description": "The ID of the command this acknowledgement is for.",
+          "format": "uuid",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "status": {
+          "const": "error",
+          "title": "Status",
+          "type": "string"
+        },
+        "error_code": {
+          "$ref": "#/$defs/SpecificErrorCode",
+          "description": "A machine-readable error code if the command failed or was rejected."
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A human-readable message providing more details about an error.",
+          "title": "Message"
+        }
+      },
+      "required": [
+        "command_id",
+        "status",
+        "error_code",
+        "type"
+      ],
+      "title": "CommandAckFailure",
+      "type": "object"
+    },
+    "CommandAckNominal": {
+      "properties": {
+        "message_id": {
+          "description": "Unique ID for this D2C message instance.",
+          "format": "uuid",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "When the drone generated the message. Must carry a UTC offset; normalised to UTC.",
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "command_ack",
+          "default": "command_ack",
+          "title": "Type",
+          "type": "string"
+        },
+        "command_id": {
+          "description": "The ID of the command this acknowledgement is for.",
+          "format": "uuid",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "received",
+            "executed"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "command_id",
+        "status",
+        "type"
+      ],
+      "title": "CommandAckNominal",
+      "type": "object"
+    },
+    "SpecificErrorCode": {
+      "enum": [
+        "INVALID_PARAMS",
+        "UNSUPPORTED_COMMAND",
+        "DUPLICATE_COMMAND",
+        "HARDWARE_FAILURE",
+        "GENERAL_ERROR"
+      ],
+      "title": "SpecificErrorCode",
+      "type": "string"
+    }
+  },
+  "oneOf": [
+    {
+      "discriminator": {
+        "mapping": {
+          "error": "#/$defs/CommandAckFailure",
+          "executed": "#/$defs/CommandAckNominal",
+          "received": "#/$defs/CommandAckNominal"
+        },
+        "propertyName": "status"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CommandAckNominal"
+        },
+        {
+          "$ref": "#/$defs/CommandAckFailure"
+        }
+      ]
+    }
+  ]
+}

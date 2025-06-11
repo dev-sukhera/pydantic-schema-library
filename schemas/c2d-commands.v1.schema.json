@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cloud-to-drone command (v1)",
+  "$defs": {
+    "GimbalControlCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "description": "Unique ID for this command; the drone echoes it in its acknowledgement.",
+          "format": "uuid",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "When the command was issued. Must carry a UTC offset; normalised to UTC.",
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "type": {
+          "const": "gimbal-controller",
+          "default": "gimbal-controller",
+          "title": "Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/GimbalControlPayload"
+        }
+      },
+      "required": [
+        "payload",
+        "type"
+      ],
+      "title": "GimbalControlCommand",
+      "type": "object"
+    },
+    "GimbalControlMode": {
+      "enum": [
+        "rate",
+        "angle",
+        "angle_step"
+      ],
+      "title": "GimbalControlMode",
+      "type": "string"
+    },
+    "GimbalControlPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "$ref": "#/$defs/GimbalControlMode"
+        },
+        "pitch_deg": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pitch Deg"
+        },
+        "yaw_deg": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Yaw Deg"
+        },
+        "pitch_deg_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pitch Deg S"
+        },
+        "yaw_deg_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Yaw Deg S"
+        },
+        "duration_s": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration S"
+        },
+        "relative": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relative"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "GimbalControlPayload",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "gimbal-controller": "#/$defs/GimbalControlCommand"
+    },
+    "propertyName": "type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GimbalControlCommand"
+    }
+  ]
+}
