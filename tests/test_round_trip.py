@@ -47,6 +47,10 @@ def test_commands_survive_json_round_trip(payload: dict[str, Any], timestamp: da
     command = COMMANDS.validate_python(
         {"type": "gimbal-controller", "timestamp": timestamp, "payload": payload}
     )
+    ack = MESSAGES.validate_python(
+        {"type": "command_ack", "command_id": str(command.command_id), "status": "received"}
+    )
+    assert ack.command_id == command.command_id
     assert command.timestamp_utc == timestamp
     assert command.timestamp_utc.tzinfo is UTC
     wire = COMMANDS.dump_json(command)

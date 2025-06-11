@@ -1,4 +1,5 @@
 from typing import Annotated, Literal, Self
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -23,6 +24,10 @@ class BaseC2DCommand(BaseModel):
 
     model_config = ConfigDict(**WIRE_MODEL_CONFIG, extra="forbid")
 
+    command_id: UUID = Field(
+        default_factory=uuid4,
+        description="Unique ID for this command; the drone echoes it in its acknowledgement.",
+    )
     timestamp_utc: UtcDatetime = Field(
         default_factory=utc_now,
         alias="timestamp",

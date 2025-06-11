@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import UUID
 
 import pytest
 from pydantic import TypeAdapter, ValidationError
@@ -189,6 +190,23 @@ class TestEnvelope:
             }
         )
         assert parsed.timestamp_utc == datetime(2025, 6, 1, 12, tzinfo=UTC)
+
+    def test_command_id_defaults_to_a_fresh_uuid(self) -> None:
+        first = COMMANDS.validate_python(command(ANGLE)).command_id
+        second = COMMANDS.validate_python(command(ANGLE)).command_id
+        assert first.version == 4
+        assert first != second
+
+    def test_supplied_command_id_is_kept(self) -> None:
+        command_id = "22222222-2222-4222-8222-222222222222"
+        parsed = COMMANDS.validate_python(command(ANGLE, command_id=command_id))
+        assert parsed.command_id == UUID(command_id)
+        assert parsed.model_dump(mode="json")["command_id"] == command_id
+
+    @pytest.mark.parametrize("command_id", ["cmd-1", "", 7])
+    def test_command_id_must_be_a_uuid(self, command_id: object) -> None:
+        with pytest.raises(ValidationError):
+            COMMANDS.validate_python(command(ANGLE, command_id=command_id))
 
     def test_payload_is_required(self) -> None:
         with pytest.raises(ValidationError) as exc:
